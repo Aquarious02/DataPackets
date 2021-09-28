@@ -44,9 +44,13 @@ class BlockBase:
 
     @classmethod
     def create_from_fields(cls, fields):
-        block = cls()
-        block.fill_with_fields(fields)
-        return block
+        fields, field_names = [], []
+        for field in fields:
+            fields.append((field.attribute_name, field.c_type, field.length))
+            field_names.append((field.attribute_name, field.string_name))
+
+        FutureClass = type("DataPacket", (cls,), {'_fields_': fields, '_field_names_': field_names})
+        return FutureClass()
 
     def clear(self):
         self._fields_.clear()
@@ -98,6 +102,7 @@ class PacketTest(Block):
                      ('bit5', 'Test 5 bit'),
                      ('bit1', 'Test 1 bit'),
                      ('bit15', 'Test 15 bit')]
+
 
 class Packet(Block):
     """
