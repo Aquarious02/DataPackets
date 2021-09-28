@@ -35,12 +35,18 @@ test_bytes = (1234567891011121314).to_bytes(8, 'big')
 class MyTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.test_block = Block.create_from_fields(test_fields)
+        self.filled_test_block = self.test_block.copy()
+        self.filled_test_block.fill_with_bytes(test_bytes)
         # self.test_block = PacketTest()
 
     def test_fill_with_bytes(self):
         self.test_block.fill_with_bytes(test_bytes)
         self.assertEqual(test_bytes, self.test_block.bytes_view())
-        pass
+
+    def test_get_attr(self):
+        attr_names = [field.attribute_name for field in test_fields]
+        result = [hasattr(self.filled_test_block, attr_name) for attr_name in attr_names]
+        self.assertTrue(all(result))
 
 
 if __name__ == '__main__':

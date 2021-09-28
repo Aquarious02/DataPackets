@@ -41,15 +41,16 @@ class BlockBase:
     def __init__(self):
         super(BlockBase, self).__init__()
         self.bytes_buffer = b''
+        self.fields = []
 
     @classmethod
     def create_from_fields(cls, fields):
-        fields, field_names = [], []
+        _fields, _field_names = [], []
         for field in fields:
-            fields.append((field.attribute_name, field.c_type, field.length))
-            field_names.append((field.attribute_name, field.string_name))
+            _fields.append((field.attribute_name, field.c_type, field.length))
+            _field_names.append((field.attribute_name, field.string_name))
 
-        FutureClass = type("DataPacket", (cls,), {'_fields_': fields, '_field_names_': field_names})
+        FutureClass = type("DataPacket", (cls,), {'_fields_': _fields, '_field_names_': _field_names, 'fields': fields})
         return FutureClass()
 
     def clear(self):
@@ -80,6 +81,11 @@ class BlockBase:
             return bytes(self)
         else:
             return self.bytes_buffer
+
+    def copy(self):
+        new_object = self.create_from_fields(self.fields)
+        new_object.__dict__ = self.__dict__.copy()
+        return new_object
 
 
 class Block(ctypes.LittleEndianStructure, BlockBase):
