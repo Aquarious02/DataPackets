@@ -21,18 +21,18 @@ class PacketTest(Block):
                      ('bit15', 'Test 15 bit')]
 
 
-test_fields = [Field(string_name='Test 16 bit', attribute_name='full_word', meaning=0, bit_length=16),
-               Field(string_name='Test 8_1 bit', attribute_name='half_word_1', meaning=0, bit_length=8),
-               Field(string_name='Test 8_2 bit', attribute_name='half_word_2', meaning=0, bit_length=8),
-               Field(string_name='Test 9 bit', attribute_name='bit9', meaning=0, bit_length=9),
-               Field(string_name='Test 5 bit', attribute_name='bit5', meaning=0, bit_length=5),
-               Field(string_name='Test 1 bit', attribute_name='bit1', meaning=0, bit_length=1),
-               Field(string_name='Test 15 bit', attribute_name='bit15', meaning=0, bit_length=15)]
+test_fields = [Field(item_name='Test 16 bit', attribute_name='full_word', meaning=0, bit_length=16),
+               Field(item_name='Test 8_1 bit', attribute_name='half_word_1', meaning=0, bit_length=8),
+               Field(item_name='Test 8_2 bit', attribute_name='half_word_2', meaning=0, bit_length=8),
+               Field(item_name='Test 9 bit', attribute_name='bit9', meaning=0, bit_length=9),
+               Field(item_name='Test 7 bit', attribute_name='bit7', meaning=0, bit_length=7),
+               Field(item_name='Test 1 bit', attribute_name='bit1', meaning=0, bit_length=1),
+               Field(item_name='Test 15 bit', attribute_name='bit15', meaning=0, bit_length=15)]
 
 test_bytes = (1234567891011121314).to_bytes(8, 'big')
 
 
-class MyTestCase(unittest.TestCase):
+class TestBlock(unittest.TestCase):
     def setUp(self) -> None:
         self.test_block = Block.create_from_fields(test_fields)
         self.filled_test_block = self.test_block.copy()
@@ -41,12 +41,36 @@ class MyTestCase(unittest.TestCase):
 
     def test_fill_with_bytes(self):
         self.test_block.fill_with_bytes(test_bytes)
-        self.assertEqual(test_bytes, self.test_block.bytes_view())
+        with self.subTest('Compare to test bytes'):
+            self.assertEqual(test_bytes, self.test_block.bytes_view())
+
+        with self.subTest('Compare bytes() and bytes_view()'):
+            # self.assertEqual(self.test_block.bytes_view(), self.filled_test_block.bytes_view())
+            self.assertEqual(bytes(self.filled_test_block), self.filled_test_block.bytes_view())
+
+        with self.subTest('Compare with copy'):
+            self.assertEqual(self.test_block.bytes_view(), self.filled_test_block.bytes_view())
+
+        with self.subTest('Compare test bytes and value in filled_test_block'):
+            self.assertEqual(self.filled_test_block.half_word_1, test_bytes[2])
+
 
     def test_get_attr(self):
-        attr_names = [field.attribute_name for field in test_fields]
-        result = [hasattr(self.filled_test_block, attr_name) for attr_name in attr_names]
+        result = [hasattr(self.filled_test_block, attr_name) for attr_name in map(lambda x: x.attribute_name, test_fields)]
         self.assertTrue(all(result))
+
+
+class TestPacket(unittest.TestCase):
+    def setUp(self) -> None:
+        self.test_packet = Packet(children_blocks=[Block.create_from_fields(test_fields[:3]), Block.create_from_fields(test_fields[3:])])
+        self.test_packet.fill_with_bytes(test_bytes)
+
+    def test_bytes_view(self):
+        self.assertEqual(test_bytes.hex(' ', 2), self.test_packet.bytes_view().hex(' ', 2))
+
+    def test_get_item(self):
+        item_name = test_fields[-1].item_name
+        self.assertNotEqual(None, self.test_packet[item_name])
 
 
 if __name__ == '__main__':

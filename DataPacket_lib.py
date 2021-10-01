@@ -13,14 +13,14 @@ class Field:
     """
     Field of one parameter
     """
-    def __init__(self, string_name, attribute_name, meaning=None, c_type=c_uint16, bit_length=16, check_range=None):
+    def __init__(self, item_name, attribute_name, meaning=None, c_type=c_uint16, bit_length=16, check_range=None):
         """
-        :param string_name: name to show in print
+        :param item_name: name to show in print
         :param meaning: value of field
         :param bit_length: length in bits of value in bytestream
         :param check_range: valid range of values
         """
-        self.string_name = string_name
+        self.item_name = item_name
         self.attribute_name = attribute_name
         self.meaning = meaning
         self.c_type = c_type
@@ -48,9 +48,10 @@ class BlockBase:
         _fields, _field_names = [], []
         for field in fields:
             _fields.append((field.attribute_name, field.c_type, field.length))
-            _field_names.append((field.attribute_name, field.string_name))
+            _field_names.append((field.attribute_name, field.item_name))
 
-        FutureClass = type("DataPacket", (cls,), {'_fields_': _fields, '_field_names_': _field_names, 'fields': fields})
+        FutureClass = type("DataPacket", (cls,), {'_fields_': _fields, '_field_names_': _field_names,
+                                                  '_pack_': 1, 'fields': fields})
         return FutureClass()
 
     def clear(self):
@@ -83,9 +84,20 @@ class BlockBase:
             return self.bytes_buffer
 
     def copy(self):
-        new_object = self.create_from_fields(self.fields)
-        new_object.__dict__ = self.__dict__.copy()
-        return new_object
+        new_object = type("DataPacket", (type(self),), self.__dict__.copy())
+        return new_object()
+
+    def __getitem__(self, item_name):
+        for attr_name, field_name in self._field_names_:
+            if item_name == field_name:
+                return getattr(self, attr_name)
+
+    def __setitem__(self, key, value):
+        # for attr_name, field_name in self._field_names_:
+        pass
+
+    def __len__(self):
+        return ctypes.sizeof(self)
 
 
 class Block(ctypes.LittleEndianStructure, BlockBase):
@@ -110,8 +122,31 @@ class PacketTest(Block):
                      ('bit15', 'Test 15 bit')]
 
 
-class Packet(Block):
+class Packet:
     """
     Packet consists of blocks, has limited len
     """
-    pass
+    def __init__(self, children_blocks=None):
+        self.children_blocks = children_blocks or []
+
+    def fill_with_bytes(self, _bytes):
+        start = 0
+        for block in self.children_blocks:
+            stop = len(block)
+            block.fill_with_bytes(_bytes[start: start + stop])
+            start = stop
+
+    def bytes_view(self):
+        all_bytes = b''
+        for block in self.children_blocks:
+            all_bytes += block.bytes_view()
+        return all_bytes
+
+    def __getitem__(self, item_name):
+        for block in self.children_blocks:
+            if item := block.__getitem__(item_name):
+                return item
+
+
+    def __bytes__(self):
+        return self.bytes_view()
