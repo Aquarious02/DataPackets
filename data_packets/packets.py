@@ -43,7 +43,7 @@ class BlockBase:
     def create_from_fields(cls, fields):
         _fields, _field_names = [], []
         for field in fields:
-            _fields.append((field.attribute_name, field.c_type, field.length))
+            _fields.append((field.attribute_name, field.c_type, field.bit_length))
             _field_names.append((field.attribute_name, field.item_name))
 
         FutureClass = type("DataPacket", (cls,), {'_fields_': _fields, '_field_names_': _field_names,

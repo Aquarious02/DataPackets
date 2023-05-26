@@ -78,5 +78,53 @@ class TestPacket(unittest.TestCase):
         self.assertNotEqual(None, self.test_packet[item_name])
 
 
+class Header(Block):
+    _fields_ = [
+        ('message_id', c_uint8),
+        ('message_type', c_uint8),
+        ('signature', c_uint8),
+    ]
+
+    _field_names_ = [
+        ('message_type', 'message_type'),
+        ('message_id', 'message_id'),
+        ('signature', 'signature'),
+    ]
+
+
+class Payload(Block):
+    _fields_ = [
+        ('message_id', c_uint8),
+        ('message_type', c_uint8),
+        ('counter', c_uint8),
+        ('data', c_uint8 * 4),
+    ]
+
+    _field_names_ = [
+        ('message_id', 'message_type'),
+        ('message_type', 'message_id'),
+        ('counter', 'signature'),
+        ('data', 'data'),
+    ]
+
+
+class Packet(Block):
+    _anonymous_ = ('header', 'payload')
+    _fields_ = [
+        ('header', Header),
+        ('payload', Payload),
+    ]
+
+
+class TestUnionPackets(unittest.TestCase):
+    def setUp(self) -> None:
+        test_sequence = 123_124_235_746_573_465_475_635
+        self.test_bytes_little = test_sequence.to_bytes(10, 'little')
+        self.packet = Packet.create_from_bytes(self.test_bytes_little)
+
+    def test_bytes_view(self):
+        assert self.packet.bytes_view() == self.test_bytes_little
+
+
 if __name__ == '__main__':
     unittest.main()
