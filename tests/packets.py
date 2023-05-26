@@ -67,7 +67,8 @@ class TestBlock(unittest.TestCase):
 
 class TestPacket(unittest.TestCase):
     def setUp(self) -> None:
-        self.test_packet = Packet(children_blocks=[Block.create_from_fields(test_fields[:3]), Block.create_from_fields(test_fields[3:])])
+        self.test_packet = Packet(children_blocks=[Block.create_from_fields(test_fields[:3]),
+                                                   Block.create_from_fields(test_fields[3:])])
         self.test_packet.fill_with_bytes(test_bytes)
 
     def test_bytes_view(self):
@@ -108,7 +109,7 @@ class Payload(Block):
     ]
 
 
-class Packet(Block):
+class PacketWhole(Block):
     _anonymous_ = ('header', 'payload')
     _fields_ = [
         ('header', Header),
@@ -120,7 +121,7 @@ class TestUnionPackets(unittest.TestCase):
     def setUp(self) -> None:
         test_sequence = 123_124_235_746_573_465_475_635
         self.test_bytes_little = test_sequence.to_bytes(10, 'little')
-        self.packet = Packet.create_from_bytes(self.test_bytes_little)
+        self.packet = PacketWhole.create_from_bytes(self.test_bytes_little)
 
     def test_bytes_view(self):
         assert self.packet.bytes_view() == self.test_bytes_little
