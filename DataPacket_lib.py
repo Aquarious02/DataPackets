@@ -66,7 +66,9 @@ class BlockBase:
 
     @classmethod
     def create_from_bytes(cls, _bytes):
-        pass
+        instance = cls()
+        instance.fill_with_bytes(_bytes)
+        return instance
 
     def fill_with_bytes(self, _bytes):
         if self._fields_:
@@ -104,24 +106,6 @@ class Block(ctypes.LittleEndianStructure, BlockBase):
     pass
 
 
-class PacketTest(Block):
-    _fields_ = [('full_word', c_uint16, 16),
-                ('half_word_1', c_uint16, 8),
-                ('half_word_2', c_uint16, 8),
-                ('bit9', c_uint16, 9),
-                ('bit5', c_uint16, 5),
-                ('bit1', c_uint16, 1),
-                ('bit15', c_uint16, 15)]
-
-    _field_names_ = [('full_word', 'Test 16 bit'),
-                     ('half_word_1', 'Test 8_1 bit'),
-                     ('half_word_2', 'Test 8_2 bit'),
-                     ('bit9', 'Test 9 bit'),
-                     ('bit5', 'Test 5 bit'),
-                     ('bit1', 'Test 1 bit'),
-                     ('bit15', 'Test 15 bit')]
-
-
 class Packet:
     """
     Packet consists of blocks, has limited len
@@ -146,7 +130,6 @@ class Packet:
         for block in self.children_blocks:
             if item := block.__getitem__(item_name):
                 return item
-
 
     def __bytes__(self):
         return self.bytes_view()
