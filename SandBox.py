@@ -1,6 +1,4 @@
-import ctypes
-
-from DataPacket_lib import *
+from data_packets.packets import *
 
 
 if __name__ == '__main__':

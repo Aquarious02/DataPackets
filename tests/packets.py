@@ -1,6 +1,6 @@
 import unittest
 
-from DataPacket_lib import *
+from data_packets.packets import *
 
 
 class PacketTest(Block):

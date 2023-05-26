@@ -1,6 +1,9 @@
 import ctypes
 
 # Types aliases (now import from BinaryStream)
+from _ctypes import _SimpleCData
+from dataclasses import dataclass
+
 c_uint8 = ctypes.c_uint8
 c_uint16 = ctypes.c_uint16
 c_uint32 = ctypes.c_uint32
@@ -9,26 +12,19 @@ c_float = ctypes.c_float
 c_bool = ctypes.c_bool
 
 
+@dataclass
 class Field:
     """
     Field of one parameter
     """
-    def __init__(self, item_name, attribute_name, meaning=None, c_type=c_uint16, bit_length=16, check_range=None):
-        """
-        :param item_name: name to show in print
-        :param meaning: value of field
-        :param bit_length: length in bits of value in bytestream
-        :param check_range: valid range of values
-        """
-        self.item_name = item_name
-        self.attribute_name = attribute_name
-        self.meaning = meaning
-        self.c_type = c_type
-        self.length = bit_length
-        self.check_range = check_range
-
-    # def __bytes__(self):
-    #     return
+    item_name: str
+    """Name to show in print"""
+    attribute_name: str
+    meaning: int | float | bytes = None
+    """Value of field"""
+    c_type: _SimpleCData = c_uint16
+    bit_length: int = 16
+    """Length in bits of value in bytestream"""
 
 
 class BlockBase:
